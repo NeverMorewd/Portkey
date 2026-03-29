@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+  </ItemGroup>
+
+  <Target Name="CopyAngularBuild" AfterTargets="Build"
+    Condition="Exists('$(MSBuildProjectDirectory)/../../../src/frontend/portkey-app/dist/portkey-app/browser')">
+    <ItemGroup>
+      <AngularFiles
+        Include="$(MSBuildProjectDirectory)/../../../src/frontend/portkey-app/dist/portkey-app/browser/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(AngularFiles)"
+      DestinationFiles="@(AngularFiles->'$(MSBuildProjectDirectory)/wwwroot/%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
+</Project>
