@@ -8,16 +8,18 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5" />
   </ItemGroup>
 
-  <Target Name="CopyAngularBuild" AfterTargets="Build"
-    Condition="Exists('$(MSBuildProjectDirectory)/../../../src/frontend/portkey-app/dist/portkey-app/browser')">
+  <Target Name="CopyAngularBuild" AfterTargets="Build" Condition="Exists('$(MSBuildProjectDirectory)/../../../src/frontend/portkey-app/dist/portkey-app/browser')">
     <ItemGroup>
-      <AngularFiles
-        Include="$(MSBuildProjectDirectory)/../../../src/frontend/portkey-app/dist/portkey-app/browser/**/*" />
+      <AngularFiles Include="$(MSBuildProjectDirectory)/../../../src/frontend/portkey-app/dist/portkey-app/browser/**/*" />
     </ItemGroup>
-    <Copy SourceFiles="@(AngularFiles)"
-      DestinationFiles="@(AngularFiles->'$(MSBuildProjectDirectory)/wwwroot/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(AngularFiles)" DestinationFiles="@(AngularFiles->'$(MSBuildProjectDirectory)/wwwroot/%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
 </Project>

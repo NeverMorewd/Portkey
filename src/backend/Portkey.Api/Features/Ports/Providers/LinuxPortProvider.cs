@@ -6,7 +6,7 @@ namespace Portkey.Api.Features.Ports.Providers;
 
 [SupportedOSPlatform("linux")]
 public class LinuxPortProvider : IPortProvider
-    {
+{
     public async Task<Dictionary<int, int>> GetPortPidMapAsync()
     {
         var map = new Dictionary<int, int>();

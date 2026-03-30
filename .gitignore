@@ -26,3 +26,8 @@ Thumbs.db
 # IDE
 .vscode/settings.json
 *.swp
+
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
