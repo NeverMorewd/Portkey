@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Portkey.Api.Data;
+using Portkey.Api.Hubs;
 
 namespace Portkey.Api.Features.Services;
 
@@ -10,10 +12,17 @@ public class ServiceManager
     private readonly PortkeyDbContext _dbContext;
     private readonly ConcurrentDictionary<int, Process> _runningProcesses = new();
     private readonly ILogger<ServiceManager> _logger;
-    public ServiceManager(PortkeyDbContext dbContext, ILogger<ServiceManager> logger)
+    private readonly IHubContext<LogHub> _logHubContext;
+    private readonly IServiceScopeFactory _scopeFactory;
+    public ServiceManager(PortkeyDbContext dbContext,
+    IHubContext<LogHub> logHubContext,
+    ILogger<ServiceManager> logger,
+    IServiceScopeFactory scopeFactory)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _logHubContext = logHubContext;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task<IEnumerable<ServiceEntry>> GetServices()
@@ -62,6 +71,8 @@ public class ServiceManager
                 serviceEntry.Status = ServiceStatus.Stopped;
                 _dbContext.ServiceEntries.Update(serviceEntry);
                 await _dbContext.SaveChangesAsync();
+                await _logHubContext.Clients.Group($"service-{id}").SendAsync("ReceiveLog", new { id, stream = "exited", line = $"exited:{process.ExitCode}", timestamp = DateTime.UtcNow });
+                process.Dispose();
             }
             return true;
         }
@@ -80,17 +91,29 @@ public class ServiceManager
                 return true; //already running
             var parts = serviceEntry.StartCommand.Split(' ', 2);
             var psi = new ProcessStartInfo(parts[0], parts.Length > 1 ? parts[1] : "");
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardError = true;
             var process = Process.Start(psi)!;
             if (process == null)
                 return false;
+            _ = ReadStreamAsync(process.StandardOutput, id, "stdout");
+            _ = ReadStreamAsync(process.StandardError, id, "stderr");
             process.EnableRaisingEvents = true;
-            process.Exited += (s, e) =>
+            process.Exited += async (s, e) =>
             {
-                if (_runningProcesses.TryRemove(id, out _))
+                if (_runningProcesses.TryRemove(id, out var processtoRemove))
                 {
-                    serviceEntry.Status = ServiceStatus.Stopped;
-                    _dbContext.ServiceEntries.Update(serviceEntry);
-                    _dbContext.SaveChanges();
+                    using var scope = _scopeFactory.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<PortkeyDbContext>();
+                    var entry = db.ServiceEntries.Find(id);
+                    if (entry is not null)
+                    {
+                        entry.Status = ServiceStatus.Stopped;
+                        db.SaveChanges();
+                    }
+                    await _logHubContext.Clients.All.SendAsync("ServiceStatusChanged", new { id, status = "Stopped" });
+                    await _logHubContext.Clients.Group($"service-{id}").SendAsync("ReceiveLog", new { id, stream = "exited", line = $"exited:{processtoRemove.ExitCode}", timestamp = DateTime.UtcNow });
+                    processtoRemove.Dispose();
                 }
             };
             _runningProcesses.TryAdd(serviceEntry.Id, process!);
@@ -108,6 +131,19 @@ public class ServiceManager
     public async Task<bool> RestartService(int id)
     {
         throw new NotImplementedException();
+    }
+
+    private async Task ReadStreamAsync(StreamReader reader, int serviceId, string stream)
+    {
+        while (!reader.EndOfStream)
+        {
+            var line = await reader.ReadLineAsync();
+            if (line is not null)
+            {
+                await _logHubContext.Clients.Group($"service-{serviceId}")
+                    .SendAsync("ReceiveLog", new { serviceId, stream, line, timestamp = DateTime.UtcNow });
+            }
+        }
     }
 
 }

@@ -3,20 +3,33 @@ using Portkey.Api.Data;
 using Portkey.Api.Features.Ports;
 using Portkey.Api.Features.Ports.Providers;
 using Portkey.Api.Features.Services;
+using Portkey.Api.Hubs;
+
+const string CorsPolicyName = "AppCors";
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Logging.AddConsole();
+builder.Services.AddSignalR();
 
-builder.Services.AddCors(options =>
-{
-  options.AddPolicy("AllowAll", policy =>
+var allowedOrigins = builder.Configuration
+      .GetSection("Cors:AllowedOrigins")
+      .Get<string[]>() ?? [];
+
+  builder.Services.AddCors(options =>
   {
-    policy.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+      options.AddPolicy(CorsPolicyName, policy =>
+      {
+          if (allowedOrigins.Length == 0)
+              policy.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+          else
+              policy.WithOrigins(allowedOrigins)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+      });
   });
-});
 
 if (OperatingSystem.IsWindows())
   builder.Services.AddSingleton<IPortProvider, WindowsPortProvider>();
@@ -46,11 +59,12 @@ using (var scope = app.Services.CreateScope())
   db.Database.EnsureCreated();
 }
 
-app.UseCors("AllowAll");
+app.UseCors(CorsPolicyName);
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.MapFallbackToFile("index.html");
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/api/ports", async (PortScannerService scanner) => Results.Ok(await scanner.GetListeningPortsAsync()));
 app.MapServiceEndpoints();
+app.MapHub<LogHub>("/hubs/log");
 app.Run();
