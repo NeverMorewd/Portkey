@@ -82,7 +82,7 @@ export class ServiceList implements OnInit {
 
   onServiceStatusChanged(data: { id: number, status: string }) {
     this.services.update(list =>
-      list.map(s => s.id === data.id ? { ...s, status: data.status as any } : s)
+      list.map(s => s.id === data.id ? { ...s, status: data.status as 'Running' | 'Stopped' | 'Unhealthy' } : s)
     );
   }
 
