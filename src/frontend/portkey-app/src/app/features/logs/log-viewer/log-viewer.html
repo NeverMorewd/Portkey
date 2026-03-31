@@ -1,0 +1,11 @@
+  <div class="log-viewer" style="background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:12px; height:400px; overflow-y:auto; border-radius:6px;">
+    @for (entry of logs(); track $index) {
+      <div [style.color]="entry.stream === 'stderr' ? '#f48771' : '#d4d4d4'">
+        <span style="color:#858585;">{{ entry.timestamp | date:'HH:mm:ss.SSS' }}</span>
+        &nbsp;{{ entry.line }}
+      </div>
+    }
+    @if (logs().length === 0) {
+      <span style="color:#858585;">Waiting for logs...</span>
+    }
+  </div>
