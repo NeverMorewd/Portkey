@@ -1,44 +1,57 @@
- <div class="port-list-container">
-    <p-table
-      [value]="ports()"
-      [loading]="loading()"
-      [paginator]="true"
-      [rows]="15"
-      styleClass="p-datatable-striped"
-    >
-      <ng-template #caption>
-        <div class="table-header">
-          <span>Listening Ports</span>
-        </div>
-         <p-button (click)="refresh()"> 
-            <span class="pi pi-refresh">Refresh</span>
-         </p-button>
-      </ng-template>
-
-      <ng-template #header>
-        <tr>
-          <th>Port</th>
-          <th>Protocol</th>
-          <th>PID</th>
-          <th>Process</th>
-        </tr>
-      </ng-template>
-
-      <ng-template #body let-item>
-        <tr>
-          <td><strong>{{ item.port }}</strong></td>
-          <td>
-            <p-tag [value]="item.protocol" severity="info" />
-          </td>
-          <td>{{ item.pid }}</td>
-          <td>{{ item.processName }}</td>
-        </tr>
-      </ng-template>
-
-      <ng-template #empty>
-        <tr>
-          <td colspan="4" style="text-align:center">No ports found.</td>
-        </tr>
-      </ng-template>
-    </p-table>
+<div class="port-list-container">
+  <div class="page-header">
+    <h2>Listening Ports</h2>
+    <p-button label="Refresh" icon="pi pi-refresh" (click)="refresh()" [loading]="loading()" />
   </div>
+
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  <div class="content-grid">
+    <div class="chart-card">
+      <div class="card-title">Ports by Process</div>
+      @if (ports().length > 0) {
+        <div class="chart-wrapper">
+          <app-echart [option]="pieOption()" />
+        </div>
+      } @else {
+        <div class="chart-empty">No data</div>
+      }
+    </div>
+
+    <div class="table-card">
+      <p-table
+        [value]="ports()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="15"
+        styleClass="p-datatable-sm p-datatable-striped"
+      >
+        <ng-template #header>
+          <tr>
+            <th>Port</th>
+            <th>Protocol</th>
+            <th>PID</th>
+            <th>Process</th>
+          </tr>
+        </ng-template>
+
+        <ng-template #body let-item>
+          <tr>
+            <td><strong>{{ item.port }}</strong></td>
+            <td><p-tag [value]="item.protocol" severity="info" /></td>
+            <td>{{ item.pid }}</td>
+            <td>{{ item.processName }}</td>
+          </tr>
+        </ng-template>
+
+        <ng-template #empty>
+          <tr>
+            <td colspan="4" class="empty-row">No ports found.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>

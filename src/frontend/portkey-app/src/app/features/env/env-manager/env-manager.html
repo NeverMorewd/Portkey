@@ -1,0 +1,171 @@
+<p-toast position="bottom-right" />
+
+<div class="env-manager">
+  <div class="page-header">
+    <h2>Environment Variables</h2>
+  </div>
+
+  <div class="env-layout">
+
+    <!-- Left: Project list -->
+    <div class="projects-panel">
+      <div class="panel-header">
+        <span>Projects</span>
+        <p-button icon="pi pi-plus" size="small" [text]="true" (click)="showAddProject.set(true)" />
+      </div>
+      <div class="project-list">
+        @for (p of projects(); track p.id) {
+          <div class="project-item" [class.active]="selectedProject()?.id === p.id"
+               (click)="selectProject(p)">
+            <span class="pi pi-folder project-icon"></span>
+            <div class="project-info">
+              <div class="project-name">{{ p.name }}</div>
+              <div class="project-path">{{ p.path }}</div>
+            </div>
+            <button class="icon-btn danger" title="Remove"
+                    (click)="deleteProject(p.id); $event.stopPropagation()">
+              <span class="pi pi-times"></span>
+            </button>
+          </div>
+        } @empty {
+          <div class="empty-hint">Add a project to get started.</div>
+        }
+      </div>
+    </div>
+
+    <!-- Right: Editor -->
+    <div class="editor-panel">
+      @if (selectedProject()) {
+
+        <!-- File tabs -->
+        <div class="file-tabs">
+          @for (file of envFiles(); track file) {
+            <button class="tab" [class.active]="activeFile() === file" (click)="loadFile(file)">
+              {{ file }}
+            </button>
+          }
+          <button class="tab tab-new" title="New file" (click)="showNewFile.set(true)">
+            <span class="pi pi-plus"></span>
+          </button>
+        </div>
+
+        @if (activeFile()) {
+          <div class="editor-card">
+            <div class="editor-toolbar">
+              <p-button label="Add Variable" icon="pi pi-plus" size="small" severity="secondary"
+                        (click)="addEntry()" />
+              <p-button label="Save" icon="pi pi-save" size="small" [loading]="saving()"
+                        (click)="save()" />
+            </div>
+
+            <div class="table-scroll">
+              <table class="env-table">
+                <thead>
+                  <tr>
+                    <th class="col-key">Key</th>
+                    <th class="col-value">Value</th>
+                    <th class="col-sens">Sensitive</th>
+                    <th class="col-del"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (entry of entries(); track $index; let i = $index) {
+                    <tr [class.sensitive-row]="entry.isSensitive">
+                      <td>
+                        <input class="cell-input key-input" placeholder="KEY"
+                               [value]="entry.key"
+                               (input)="updateKey(i, $any($event.target).value)" />
+                      </td>
+                      <td>
+                        <div class="value-wrap">
+                          <input class="cell-input value-input"
+                                 [type]="entry.isSensitive && !isRevealed(entry.key) ? 'password' : 'text'"
+                                 placeholder="value"
+                                 [value]="entry.value"
+                                 (input)="updateValue(i, $any($event.target).value)" />
+                          @if (entry.isSensitive) {
+                            <button class="icon-btn" (click)="toggleReveal(entry.key)">
+                              <span [class]="'pi ' + (isRevealed(entry.key) ? 'pi-eye-slash' : 'pi-eye')"></span>
+                            </button>
+                          }
+                        </div>
+                      </td>
+                      <td class="center">
+                        <input type="checkbox" [checked]="entry.isSensitive"
+                               (change)="updateSensitive(i, $any($event.target).checked)" />
+                      </td>
+                      <td class="center">
+                        <button class="icon-btn danger" (click)="removeEntry(i)">
+                          <span class="pi pi-trash"></span>
+                        </button>
+                      </td>
+                    </tr>
+                  } @empty {
+                    @if (!loading()) {
+                      <tr>
+                        <td colspan="4" class="empty-row">
+                          No variables. Click "Add Variable" to add one.
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        } @else {
+          <div class="placeholder">
+            @if (envFiles().length === 0) {
+              <span class="pi pi-file" style="font-size:2rem;color:#cbd5e1"></span>
+              <p>No .env files found in this directory.</p>
+              <p-button label="Create .env file" icon="pi pi-plus" (click)="showNewFile.set(true)" />
+            } @else {
+              <p>Select a file tab above.</p>
+            }
+          </div>
+        }
+
+      } @else {
+        <div class="placeholder">
+          <span class="pi pi-arrow-left" style="font-size:1.5rem;color:#cbd5e1"></span>
+          <p>Select a project from the left panel.</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Add project dialog -->
+<p-dialog header="Add Project" [visible]="showAddProject()" (onHide)="showAddProject.set(false)"
+          [modal]="true" [style]="{width: '440px'}">
+  <div class="dialog-form">
+    <label>Project Name</label>
+    <input pInputText placeholder="e.g. My API"
+           [ngModel]="newProject().name"
+           (ngModelChange)="newProject.set({...newProject(), name: $event})" />
+    <label>Directory Path</label>
+    <input pInputText placeholder="e.g. C:\Projects\my-api"
+           [ngModel]="newProject().path"
+           (ngModelChange)="newProject.set({...newProject(), path: $event})" />
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" (click)="showAddProject.set(false)" />
+    <p-button label="Add" (click)="addProject()" />
+  </ng-template>
+</p-dialog>
+
+<!-- New file dialog -->
+<p-dialog header="New Env File" [visible]="showNewFile()" (onHide)="showNewFile.set(false)"
+          [modal]="true" [style]="{width: '360px'}">
+  <div class="dialog-form">
+    <label>Filename</label>
+    <input pInputText placeholder=".env.development"
+           [ngModel]="newFileName()"
+           (ngModelChange)="newFileName.set($event)" />
+    <div class="hint">Must match pattern: <code>.env</code> or <code>.env.suffix</code></div>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" (click)="showNewFile.set(false)" />
+    <p-button label="Create" (click)="createFile()" />
+  </ng-template>
+</p-dialog>

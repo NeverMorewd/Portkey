@@ -31,3 +31,9 @@ Thumbs.db
 *.db
 *.db-shm
 *.db-wal
+
+# ASP.NET wwwroot (Angular build output copied here — not source)
+src/backend/Portkey.Api/wwwroot/
+
+# Claude Code local memory
+.claude/

@@ -22,33 +22,33 @@
 - [x] Service status auto-sync on unexpected exit
 - [x] Cross-origin SignalR support (dev + prod config)
 
-## Phase 4 — UI & Navigation 🚧
-- [ ] Sidebar navigation layout
-- [ ] App shell (sidebar + content area)
-- [ ] Port page: pie chart by process name (ECharts)
-- [ ] Service page: status summary chart
-- [ ] System resource monitor (CPU / memory real-time line chart via SignalR)
+## Phase 4 — UI & Navigation ✅
+- [x] Sidebar navigation layout
+- [x] App shell (sidebar + content area)
+- [x] Port page: pie chart by process name (ECharts)
+- [x] Service page: status summary chart
+- [x] System resource monitor (CPU / memory real-time line chart via SignalR)
 
-## Phase 5 — Environment Variable Manager
-- [ ] Read / write `.env` files across projects
-- [ ] Multi-environment switching (dev / staging / prod)
-- [ ] Sensitive value encryption
+## Phase 5 — Environment Variable Manager ✅
+- [x] Read / write `.env` files across projects
+- [x] Multi-environment switching (dev / staging / prod)
+- [x] Sensitive value encryption (AES-256, ENC: prefix in file)
 
-## Phase 6 — Git Repository Overview
-- [ ] Scan local directories for git repositories
-- [ ] Display branch, uncommitted changes, last commit
-- [ ] LibGit2Sharp integration
+## Phase 6 — Git Repository Overview ✅
+- [x] Scan local directories for git repositories
+- [x] Display branch, uncommitted changes, last commit
+- [x] LibGit2Sharp integration
 
-## Phase 7 — Health Check
-- [ ] Periodic HTTP / TCP health check for running services
-- [ ] Auto-update status to `Unhealthy` on failure
-- [ ] Visual indicator in service list
+## Phase 7 — Health Check ✅
+- [x] Periodic HTTP / TCP health check for running services
+- [x] Auto-update status to `Unhealthy` on failure
+- [x] Visual indicator in service list
 
-## Phase 8 — Engineering Improvements
-- [ ] HTTP interceptor for unified error handling (401 / 500)
-- [ ] Loading states and error boundaries
-- [ ] Unit tests (backend: xUnit, frontend: Vitest)
-- [ ] Electron starts .NET backend as child process automatically
+## Phase 8 — Engineering Improvements ✅
+- [x] HTTP interceptor for unified error handling (401 / 500)
+- [x] Loading states and error boundaries
+- [x] Unit tests (backend: xUnit 25 tests, frontend: Vitest service tests)
+- [x] Electron starts .NET backend as child process automatically
 
 ## Phase 9 — Packaging & Distribution
 - [ ] .NET self-contained publish embedded in Electron package

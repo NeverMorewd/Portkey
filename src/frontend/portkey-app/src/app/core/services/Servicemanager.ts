@@ -39,4 +39,9 @@ export class ServiceManager {
   stopService(id: number): Observable<boolean> {
     return this.http.put<boolean>(`${this.baseUrl}/api/services/${id}/stop`, null);
   }
+
+  checkHealth(id: number): Observable<{ healthy: boolean; reason: string; checkedAt: string }> {
+    return this.http.post<{ healthy: boolean; reason: string; checkedAt: string }>(
+      `${this.baseUrl}/api/services/${id}/check`, null);
+  }
 }

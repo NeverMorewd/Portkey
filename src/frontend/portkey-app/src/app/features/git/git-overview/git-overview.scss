@@ -1,0 +1,329 @@
+.git-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input {
+  padding: 7px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #334155;
+  background: #fff;
+  width: 220px;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &:focus { border-color: #93c5fd; }
+
+  &::placeholder { color: #94a3b8; }
+}
+
+// ── Summary badges ────────────────────────────────────────────────────────────
+
+.summary-badges { display: flex; gap: 6px; }
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+
+  &-total    { background: #f1f5f9; color: #475569; }
+  &-clean    { background: #dcfce7; color: #16a34a; }
+  &-dirty    { background: #fef3c7; color: #d97706; }
+}
+
+// ── Roots strip ───────────────────────────────────────────────────────────────
+
+.roots-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.root-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 4px 10px 4px 12px;
+  font-size: 0.8rem;
+  color: #64748b;
+
+  .pi-folder { color: #94a3b8; }
+}
+
+.root-path {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 0.65rem;
+  transition: background 0.1s, color 0.1s;
+
+  &:hover { background: #fee2e2; color: #dc2626; }
+}
+
+// ── States ────────────────────────────────────────────────────────────────────
+
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 0;
+  color: #94a3b8;
+  font-size: 0.9rem;
+
+  p { margin: 0; }
+}
+
+// ── Repo grid ─────────────────────────────────────────────────────────────────
+
+.repo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.repo-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.15s;
+
+  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  &.is-dirty { border-left: 3px solid #f59e0b; }
+}
+
+// ── Card header ───────────────────────────────────────────────────────────────
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.repo-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &.status-clean     { background: #dcfce7; color: #16a34a; }
+  &.status-modified  { background: #fef3c7; color: #d97706; }
+  &.status-untracked { background: #e0e7ff; color: #4338ca; }
+}
+
+// ── Card meta ─────────────────────────────────────────────────────────────────
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.branch-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-family: 'Courier New', monospace;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 3px 9px;
+  border-radius: 6px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-info { display: flex; gap: 4px; }
+
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+
+  &.ahead  { background: #dcfce7; color: #16a34a; }
+  &.behind { background: #fee2e2; color: #dc2626; }
+
+  .pi { font-size: 0.65rem; }
+}
+
+// ── Changes ───────────────────────────────────────────────────────────────────
+
+.changes-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.change-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  padding: 2px 9px;
+  border-radius: 10px;
+
+  &.modified  { background: #fef3c7; color: #92400e; }
+  &.untracked { background: #f3e8ff; color: #7e22ce; }
+}
+
+// ── Commit ────────────────────────────────────────────────────────────────────
+
+.commit-section {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.commit-message {
+  font-size: 0.83rem;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.commit-meta {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dot-sep { color: #cbd5e1; }
+
+// ── Card footer ───────────────────────────────────────────────────────────────
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.remote-url {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+
+  .pi-link { flex-shrink: 0; }
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+
+  &:hover { background: #f1f5f9; color: #334155; }
+
+  &.spinning .pi { animation: spin 1s linear infinite; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+// ── Dialog ────────────────────────────────────────────────────────────────────
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0 8px;
+
+  label { font-size: 0.8rem; font-weight: 600; color: #64748b; }
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}

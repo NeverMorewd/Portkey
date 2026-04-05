@@ -1,72 +1,146 @@
 <p-toast position="bottom-right" />
+
 <div class="service-list-container">
-    <p-table [value]="services()" [loading]="loading()" [paginator]="false" [rows]="15"
-        styleClass="p-datatable-striped">
-        <ng-template #caption>
-            <div class="table-header" style="display:flex; justify-content:space-between; align-items:center;">
-                <span>Services</span>
-                <div style="display:flex; gap:8px;">
-                    <p-button label="Refresh" icon="pi pi-refresh" (click)="ngOnInit()" />
-                    <p-button label="Add Service" icon="pi pi-plus" (click)="showAddDialog.set(true)" />
-                </div>
-            </div>
-        </ng-template>
+  <div class="page-header">
+    <h2>Services</h2>
+    <div class="header-actions">
+      <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" (click)="ngOnInit()" />
+      <p-button label="Add Service" icon="pi pi-plus" (click)="showAddDialog.set(true)" />
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="chart-card">
+      <div class="card-title">Status Overview</div>
+      @if (services().length > 0) {
+        <div class="chart-wrapper">
+          <app-echart [option]="statusOption()" />
+        </div>
+        <div class="stat-row">
+          <div class="stat running">
+            <span class="stat-num">{{ runningCount() }}</span>
+            <span class="stat-label">Running</span>
+          </div>
+          <div class="stat stopped">
+            <span class="stat-num">{{ stoppedCount() }}</span>
+            <span class="stat-label">Stopped</span>
+          </div>
+          <div class="stat total">
+            <span class="stat-num">{{ services().length }}</span>
+            <span class="stat-label">Total</span>
+          </div>
+        </div>
+      } @else {
+        <div class="chart-empty">No services yet</div>
+      }
+    </div>
+
+    <div class="table-card">
+      <p-table [value]="services()" [loading]="loading()" styleClass="p-datatable-sm p-datatable-striped">
         <ng-template #header>
-            <tr>
-                <th>Name</th>
-                <th>Address</th>
-                <th>Port</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
+          <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Port</th>
+            <th>Status</th>
+            <th>Health</th>
+            <th>Actions</th>
+          </tr>
         </ng-template>
 
         <ng-template #body let-item>
-            <tr (click)="selectedServiceId.set(item.id)" style="cursor:pointer;">
-                <td>{{ item.name }}</td>
-                <td>{{ item.address }}</td>
-                <td>{{ item.port }}</td>
-                <td>
-                    <p-tag [value]="item.status" severity="info" />
-                </td>
-
-                <td style="display:flex; gap:8px;">
-                    @if (item.status === 'Running') {
-                    <p-button label="Stop" icon="pi pi-stop" severity="danger" (click)="stopService(item.id)" />
-                    } @else {
-                    <p-button label="Start" icon="pi pi-play" severity="success" (click)="startService(item.id)" />
-                    }
-                    <p-button label="Delete" icon="pi pi-trash" severity="danger" (click)="deleteService(item.id)" />
-                </td>
-            </tr>
+          <tr [class.selected-row]="selectedServiceId() === item.id"
+              (click)="selectedServiceId.set(selectedServiceId() === item.id ? null : item.id)"
+              style="cursor:pointer">
+            <td><strong>{{ item.name }}</strong></td>
+            <td>{{ item.address }}</td>
+            <td>{{ item.port }}</td>
+            <td>
+              <div class="status-cell">
+                <span class="status-dot"
+                      [class.dot-running]="item.status === 'Running'"
+                      [class.dot-unhealthy]="item.status === 'Unhealthy'"
+                      [class.dot-stopped]="item.status === 'Stopped'">
+                </span>
+                <p-tag [value]="item.status" [severity]="tagSeverity(item.status)" />
+              </div>
+            </td>
+            <td>
+              @if (item.address && item.port) {
+                <button class="health-btn"
+                        [class.healthy]="healthResults().get(item.id)?.healthy === true"
+                        [class.unhealthy]="healthResults().get(item.id)?.healthy === false"
+                        [title]="healthTooltip(item.id)"
+                        [disabled]="checkingId() === item.id"
+                        (click)="checkHealth(item.id); $event.stopPropagation()">
+                  @if (checkingId() === item.id) {
+                    <span class="pi pi-spin pi-spinner"></span>
+                  } @else if (healthResults().get(item.id)?.healthy === true) {
+                    <span class="pi pi-check-circle"></span>
+                  } @else if (healthResults().get(item.id)?.healthy === false) {
+                    <span class="pi pi-times-circle"></span>
+                  } @else {
+                    <span class="pi pi-heart"></span>
+                  }
+                </button>
+              } @else {
+                <span class="no-check" title="No address/port configured">—</span>
+              }
+            </td>
+            <td>
+              <div class="action-btns">
+                @if (item.status === 'Running') {
+                  <p-button label="Stop" icon="pi pi-stop-circle" severity="danger" size="small"
+                    (click)="stopService(item.id); $event.stopPropagation()" />
+                } @else {
+                  <p-button label="Start" icon="pi pi-play" severity="success" size="small"
+                    (click)="startService(item.id); $event.stopPropagation()" />
+                }
+                <p-button icon="pi pi-trash" severity="secondary" size="small"
+                  (click)="deleteService(item.id); $event.stopPropagation()" />
+              </div>
+            </td>
+          </tr>
         </ng-template>
 
         <ng-template #empty>
-            <tr>
-                <td colspan="5" style="text-align:center">No service found.</td>
-            </tr>
+          <tr>
+            <td colspan="5" class="empty-row">No services found. Click "Add Service" to get started.</td>
+          </tr>
         </ng-template>
-    </p-table>
-    <p-dialog header="Add Service" [visible]="showAddDialog()" (onHide)="showAddDialog.set(false)" [modal]="true"
-        [style]="{width: '400px'}">
-        <div style="display:flex; flex-direction:column; gap:16px; padding:8px 0;">
-            <input pInputText placeholder="Name" [ngModel]="newService().name"
-                (ngModelChange)="newService.set({...newService(), name: $event})" />
-            <input pInputText placeholder="Address" [ngModel]="newService().address"
-                (ngModelChange)="newService.set({...newService(), address: $event})" />
-            <input pInputText type="number" placeholder="Port" [ngModel]="newService().port"
-                (ngModelChange)="newService.set({...newService(), port: +$event})" />
-            <input pInputText placeholder="Start Command" [ngModel]="newService().startCommand"
-                (ngModelChange)="newService.set({...newService(), startCommand: $event})" />
-        </div>
-        <ng-template #footer>
-            <p-button label="Cancel" severity="secondary" (click)="showAddDialog.set(false)" />
-            <p-button label="Save" (click)="addService(newService())" />
-        </ng-template>
-    </p-dialog>
-</div>
-  @if (selectedServiceId() !== null) {
-    <div style="margin-top:16px;">
-      <app-log-viewer [serviceId]="selectedServiceId()!" (statusChanged)="onServiceStatusChanged($event)"  />
+      </p-table>
     </div>
-  }
+  </div>
+</div>
+
+@if (selectedServiceId() !== null) {
+  <div class="log-panel">
+    <div class="log-panel-header">
+      <span>Logs — {{ selectedServiceName() }}</span>
+      <p-button icon="pi pi-times" severity="secondary" size="small" (click)="selectedServiceId.set(null)" />
+    </div>
+    <app-log-viewer [serviceId]="selectedServiceId()!" (statusChanged)="onServiceStatusChanged($event)" />
+  </div>
+}
+
+<p-dialog header="Add Service" [visible]="showAddDialog()" (onHide)="showAddDialog.set(false)"
+  [modal]="true" [style]="{width: '420px'}">
+  <div class="dialog-form">
+    <input pInputText placeholder="Name"
+      [ngModel]="newService().name"
+      (ngModelChange)="newService.set({...newService(), name: $event})" />
+    <input pInputText placeholder="Address (e.g. localhost)"
+      [ngModel]="newService().address"
+      (ngModelChange)="newService.set({...newService(), address: $event})" />
+    <input pInputText type="number" placeholder="Port"
+      [ngModel]="newService().port"
+      (ngModelChange)="newService.set({...newService(), port: +$event})" />
+    <input pInputText placeholder="Start Command (e.g. dotnet run)"
+      [ngModel]="newService().startCommand"
+      (ngModelChange)="newService.set({...newService(), startCommand: $event})" />
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" (click)="showAddDialog.set(false)" />
+    <p-button label="Save" (click)="addService(newService())" />
+  </ng-template>
+</p-dialog>

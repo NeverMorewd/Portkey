@@ -2,7 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using Portkey.Api.Data;
 using Portkey.Api.Features.Ports;
 using Portkey.Api.Features.Ports.Providers;
+using Portkey.Api.Features.Env;
+using Portkey.Api.Features.Git;
+using Portkey.Api.Features.Health;
 using Portkey.Api.Features.Services;
+using Portkey.Api.Features.System;
 using Portkey.Api.Hubs;
 
 const string CorsPolicyName = "AppCors";
@@ -45,6 +49,12 @@ builder.Services.AddSingleton<PortScannerService>();
 builder.Services.AddDbContext<PortkeyDbContext>(options =>
      options.UseSqlite("Data Source=portkey.db"));
 builder.Services.AddScoped<ServiceManager>();
+builder.Services.AddSingleton<EnvService>();
+builder.Services.AddSingleton<GitScanService>();
+builder.Services.AddHttpClient("health");
+builder.Services.AddSingleton<HealthChecker>();
+builder.Services.AddHostedService<HealthMonitorService>();
+builder.Services.AddHostedService<SystemMetricsService>();
 builder.Services.ConfigureHttpJsonOptions(options =>
   {
     options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
@@ -66,5 +76,8 @@ app.MapFallbackToFile("index.html");
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/api/ports", async (PortScannerService scanner) => Results.Ok(await scanner.GetListeningPortsAsync()));
 app.MapServiceEndpoints();
+app.MapEnvEndpoints();
+app.MapGitEndpoints();
 app.MapHub<LogHub>("/hubs/log");
+app.MapHub<SystemHub>("/hubs/system");
 app.Run();

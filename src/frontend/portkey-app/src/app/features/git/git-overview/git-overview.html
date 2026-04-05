@@ -1,0 +1,157 @@
+<p-toast position="bottom-right" />
+
+<div class="git-overview">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h2>Git Repositories</h2>
+      <div class="summary-badges">
+        <span class="badge badge-total">{{ repos().length }} repos</span>
+        <span class="badge badge-clean">{{ cleanCount() }} clean</span>
+        @if (dirtyCount() > 0) {
+          <span class="badge badge-dirty">{{ dirtyCount() }} modified</span>
+        }
+      </div>
+    </div>
+    <div class="header-actions">
+      <input class="search-input" placeholder="Filter by name or branch..."
+             [ngModel]="filterText()"
+             (ngModelChange)="filterText.set($event)" />
+      <p-button icon="pi pi-refresh" severity="secondary" [loading]="loading()"
+                title="Rescan all" (click)="scan()" />
+      <p-button label="Add Directory" icon="pi pi-folder-open"
+                (click)="showAddRoot.set(true)" />
+    </div>
+  </div>
+
+  <!-- Roots strip -->
+  @if (roots().length > 0) {
+    <div class="roots-strip">
+      @for (root of roots(); track root.id) {
+        <div class="root-chip">
+          <span class="pi pi-folder"></span>
+          <span class="root-path">{{ root.path }}</span>
+          <button class="chip-remove" (click)="deleteRoot(root.id)" title="Remove">
+            <span class="pi pi-times"></span>
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Repo grid -->
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="pi pi-spin pi-spinner" style="font-size:1.5rem;color:#94a3b8"></span>
+      <span>Scanning repositories…</span>
+    </div>
+  } @else if (repos().length === 0 && roots().length === 0) {
+    <div class="empty-state">
+      <span class="pi pi-github" style="font-size:2.5rem;color:#cbd5e1"></span>
+      <p>Add a directory to start scanning for Git repositories.</p>
+      <p-button label="Add Directory" icon="pi pi-folder-open" (click)="showAddRoot.set(true)" />
+    </div>
+  } @else if (filteredRepos().length === 0) {
+    <div class="empty-state">
+      <p>No repositories match your filter.</p>
+    </div>
+  } @else {
+    <div class="repo-grid">
+      @for (repo of filteredRepos(); track repo.path) {
+        <div class="repo-card" [class.is-dirty]="repo.isDirty || repo.untrackedFiles > 0">
+
+          <!-- Card header -->
+          <div class="card-header">
+            <div class="repo-name">{{ repo.name }}</div>
+            <span class="status-badge" [class]="statusClass(repo)">{{ statusLabel(repo) }}</span>
+          </div>
+
+          <!-- Branch + remote -->
+          <div class="card-meta">
+            <span class="branch-badge">
+              <span class="pi pi-code-branch"></span>
+              {{ repo.branch }}
+            </span>
+            @if (repo.aheadBy !== null || repo.behindBy !== null) {
+              <div class="sync-info">
+                @if ((repo.aheadBy ?? 0) > 0) {
+                  <span class="sync-badge ahead" title="Commits ahead of remote">
+                    <span class="pi pi-arrow-up"></span>{{ repo.aheadBy }}
+                  </span>
+                }
+                @if ((repo.behindBy ?? 0) > 0) {
+                  <span class="sync-badge behind" title="Commits behind remote">
+                    <span class="pi pi-arrow-down"></span>{{ repo.behindBy }}
+                  </span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Changes -->
+          @if (repo.isDirty || repo.untrackedFiles > 0) {
+            <div class="changes-row">
+              @if (repo.changedFiles > 0) {
+                <span class="change-chip modified">
+                  <span class="pi pi-file-edit"></span> {{ repo.changedFiles }} changed
+                </span>
+              }
+              @if (repo.untrackedFiles > 0) {
+                <span class="change-chip untracked">
+                  <span class="pi pi-question-circle"></span> {{ repo.untrackedFiles }} untracked
+                </span>
+              }
+            </div>
+          }
+
+          <!-- Last commit -->
+          <div class="commit-section">
+            <div class="commit-message">{{ repo.lastCommitMessage || '—' }}</div>
+            <div class="commit-meta">
+              @if (repo.lastCommitAuthor) {
+                <span>{{ repo.lastCommitAuthor }}</span>
+                <span class="dot-sep">·</span>
+              }
+              <span class="commit-date" [title]="repo.lastCommitDate | date:'medium'">
+                {{ relativeDate(repo.lastCommitDate) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card footer -->
+          <div class="card-footer">
+            @if (repo.remoteUrl) {
+              <span class="remote-url" [title]="repo.remoteUrl">
+                <span class="pi pi-link"></span>
+                {{ repo.remoteUrl }}
+              </span>
+            }
+            <button class="icon-btn" [class.spinning]="refreshingPath() === repo.path"
+                    title="Refresh" (click)="refreshRepo(repo)">
+              <span class="pi pi-refresh"></span>
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Add root dialog -->
+<p-dialog header="Add Scan Directory" [visible]="showAddRoot()" (onHide)="showAddRoot.set(false)"
+          [modal]="true" [style]="{width: '460px'}">
+  <div class="dialog-form">
+    <label>Directory Path</label>
+    <input pInputText placeholder="e.g. C:\Projects or ~/dev"
+           [ngModel]="newRootPath()"
+           (ngModelChange)="newRootPath.set($event)"
+           (keyup.enter)="addRoot()" />
+    <div class="hint">All Git repositories found within this directory (up to 3 levels deep) will be listed.</div>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" (click)="showAddRoot.set(false)" />
+    <p-button label="Add & Scan" icon="pi pi-search" (click)="addRoot()" />
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,38 @@
+<p-toast position="top-right" />
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="pi pi-key logo-icon"></span>
+      <span class="logo-text">Portkey</span>
+    </div>
+    <nav>
+      <a routerLink="/ports" routerLinkActive="active">
+        <span class="pi pi-server"></span>
+        <span>Ports</span>
+      </a>
+      <a routerLink="/services" routerLinkActive="active">
+        <span class="pi pi-cog"></span>
+        <span>Services</span>
+      </a>
+      <a routerLink="/env" routerLinkActive="active">
+        <span class="pi pi-file-edit"></span>
+        <span>Env Vars</span>
+      </a>
+      <a routerLink="/git" routerLinkActive="active">
+        <span class="pi pi-code-branch"></span>
+        <span>Git</span>
+      </a>
+      <a routerLink="/system" routerLinkActive="active">
+        <span class="pi pi-chart-line"></span>
+        <span>System</span>
+      </a>
+    </nav>
+  </aside>
+  <main class="content">
+    @if (loading.isLoading()) {
+      <div class="loading-bar"></div>
+    }
+    <router-outlet />
+  </main>
+</div>
