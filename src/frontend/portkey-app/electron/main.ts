@@ -6,7 +6,7 @@ import * as http from 'http';
 let mainWindow: BrowserWindow | null = null;
 let backendProcess: child_process.ChildProcess | null = null;
 
-const BACKEND_PORT = 5000;
+const BACKEND_PORT = 5169;
 const HEALTH_URL = `http://localhost:${BACKEND_PORT}/health`;
 
 // ── Backend launcher ──────────────────────────────────────────────────────────
@@ -15,7 +15,7 @@ function spawnBackend(): void {
   const isDev = !app.isPackaged;
 
   if (isDev) {
-    const backendDir = path.resolve(__dirname, '../../../../backend/Portkey.Api');
+    const backendDir = path.resolve(__dirname, '../../../backend/Portkey.Api');
     backendProcess = child_process.spawn(
       'dotnet', ['run', '--no-build', '--project', backendDir],
       {
